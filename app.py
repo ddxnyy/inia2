@@ -1,33 +1,51 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import mysql.connector
 from datetime import datetime, date
+from urllib.parse import urlparse
 import calendar
 import os
+
+# Importaciones adicionales
+import logging
+import traceback
+from flask import jsonify
+
+# Configuración de logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Manejador de errores global
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Loguear el error completo
+    logger.error(f"Unhandled Exception: {str(e)}")
+    logger.error(traceback.format_exc())
+    
+    # Respuesta de error detallada (solo en desarrollo)
+    return jsonify({
+        "error": "Internal Server Error",
+        "message": str(e),
+        "trace": traceback.format_exc()
+    }), 500
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
-# =========================
-# CONFIGURACIÓN POR ENTORNO
-# =========================
-DB_HOST = os.environ.get("DB_HOST", "sql211.infinityfree.com")
-DB_USER = os.environ.get("DB_USER", "if0_39708991")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "danydaniel1928")
-DB_NAME = os.environ.get("DB_NAME", "if0_39708991_control_pagos")
-DB_PORT = int(os.environ.get("DB_PORT", "3306"))
 
-# =========================
-# CONEXIÓN BASE DE DATOS
-# =========================
 def get_db_connection():
+    # Obtener URL de variable de entorno
+    mysql_url = os.environ.get('MYSQL_URL')
+    
+    # Parsear la URL
+    url = urlparse(mysql_url)
+    
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="control_pagos",  
-        port=3306
+        host=url.hostname,
+        user=url.username,
+        password=url.password,
+        database=url.path.lstrip('/'),
+        port=url.port
     )
-
 # =========================
 # AUTENTICACIÓN BÁSICA
 # =========================
@@ -486,4 +504,17 @@ def eliminar_departamento(id_departamento):
 # MAIN
 # =========================
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=os.environ.get('DEBUG', 'false').lower() == 'true')
+    try:
+        # Intento de conexión a base de datos al inicio
+        test_conn = get_db_connection()
+        test_conn.close()
+        
+        # Arranque del servidor
+        app.run(
+            host='0.0.0.0', 
+            port=int(os.environ.get('PORT', 5000)), 
+            debug=os.environ.get('DEBUG', 'false').lower() == 'true'
+        )
+    except Exception as e:
+        logger.error(f"Error al iniciar la aplicación: {e}")
+        logger.error(traceback.format_exc())
