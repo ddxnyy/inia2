@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Lista de Departamentos</h2>
+        <!-- Botón Agregar -->
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+            <i class="bi bi-plus-lg"></i> Agregar Departamento
+        </button>
+    </div>
+
+    <table id="tablaDepartamentos" class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Piso</th>
+                <th>Número</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dep in departamentos %}
+            <tr>
+                <td>{{ dep.id_departamento }}</td>
+                <td>{{ dep.nombre }}</td>
+                <td>{{ dep.piso }}</td>
+                <td>{{ dep.numero }}</td>
+                <td>{{ dep.direccion }}</td>
+                <td>{{ dep.estado }}</td>
+                <td>
+                    <!-- Botón Editar -->
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ dep.id_departamento }}">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <!-- Botón Eliminar -->
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar{{ dep.id_departamento }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% for dep in departamentos %}
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar{{ dep.id_departamento }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('editar_departamento', id_departamento=dep.id_departamento) }}" method="POST" class="form-editar-departamento">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Departamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" class="form-control" value="{{ dep.nombre }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Piso</label>
+                        <input type="text" name="piso" class="form-control" value="{{ dep.piso }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Número</label>
+                        <input type="text" name="numero" class="form-control" value="{{ dep.numero }}">
+                    </div>
+                    <div class="mb-3">
+                        <label>Dirección</label>
+                        <input type="text" name="direccion" class="form-control" value="{{ dep.direccion }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Estado</label>
+                        <select name="estado" class="form-select" required>
+                            <option value="Disponible" {% if dep.estado == "Disponible" %}selected{% endif %}>Disponible</option>
+                            <option value="Ocupado" {% if dep.estado == "Ocupado" %}selected{% endif %}>Ocupado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar{{ dep.id_departamento }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('eliminar_departamento', id_departamento=dep.id_departamento) }}" method="POST" class="form-eliminar-departamento">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminar Departamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Seguro que deseas eliminar el departamento <strong>{{ dep.nombre }}</strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal Agregar -->
+<div class="modal fade" id="modalAgregar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('agregar_departamento') }}" method="POST" class="form-agregar-departamento">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Departamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Piso</label>
+                        <input type="text" name="piso" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Número</label>
+                        <input type="text" name="numero" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Dirección</label>
+                        <input type="text" name="direccion" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Estado</label>
+                        <select name="estado" class="form-select" required>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Ocupado">Ocupado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function(){
+    $('#tablaDepartamentos').DataTable({
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        }
+    });
+
+    function confirmSubmit(selector, opts){
+        document.querySelectorAll(selector).forEach(function(form){
+            form.addEventListener('submit', function(ev){
+                if (form.dataset.confirmed === '1') return;
+                ev.preventDefault();
+                Swal.fire({
+                    icon: opts.icon,
+                    title: opts.title,
+                    text: opts.text,
+                    showCancelButton: true,
+                    confirmButtonText: opts.confirmText || 'Sí',
+                    cancelButtonText: 'Cancelar'
+                }).then((res)=>{
+                    if(res.isConfirmed){
+                        form.dataset.confirmed = '1';
+                        form.submit();
+                    }
+                });
+            });
+        });
+    }
+
+    confirmSubmit('form.form-agregar-departamento', { icon: 'question', title: '¿Guardar departamento?', text: 'Se registrará un nuevo departamento.', confirmText: 'Guardar' });
+    confirmSubmit('form.form-editar-departamento', { icon: 'question', title: '¿Actualizar departamento?', text: 'Se guardarán los cambios.', confirmText: 'Actualizar' });
+    confirmSubmit('form.form-eliminar-departamento', { icon: 'warning', title: '¿Eliminar departamento?', text: 'Esta acción no se puede deshacer.', confirmText: 'Eliminar' });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h2>Lista de Usuarios</h2>
+		<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarUsuario">
+			<i class="bi bi-plus-lg"></i> Agregar Usuario
+		</button>
+	</div>
+
+	<table id="tablaUsuarios" class="table table-striped table-bordered">
+		<thead class="table-dark">
+			<tr>
+				<th>ID</th>
+				<th>Nombres</th>
+				<th>Apellidos</th>
+				<th>Teléfono</th>
+				<th>DNI</th>
+				<th>Acciones</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for u in usuarios %}
+			<tr>
+				<td>{{ u.id_usuario }}</td>
+				<td>{{ u.nombres }}</td>
+				<td>{{ u.apellidos }}</td>
+				<td>{{ u.telefono }}</td>
+				<td>{{ u.dni }}</td>
+				<td>
+					<button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUsuario{{ u.id_usuario }}">
+						<i class="bi bi-pencil-square"></i>
+					</button>
+					<button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminarUsuario{{ u.id_usuario }}">
+						<i class="bi bi-trash"></i>
+					</button>
+				</td>
+			</tr>
+
+			<!-- Modal Editar Usuario -->
+			<div class="modal fade" id="modalEditarUsuario{{ u.id_usuario }}" tabindex="-1">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<form action="{{ url_for('editar_usuario', id_usuario=u.id_usuario) }}" method="POST" class="form-editar-usuario">
+							<div class="modal-header">
+								<h5 class="modal-title">Editar Usuario</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+							</div>
+							<div class="modal-body">
+								<div class="mb-3">
+									<label>Nombres</label>
+									<input type="text" name="nombres" class="form-control" value="{{ u.nombres }}" required>
+								</div>
+								<div class="mb-3">
+									<label>Apellidos</label>
+									<input type="text" name="apellidos" class="form-control" value="{{ u.apellidos }}" required>
+								</div>
+								<div class="mb-3">
+									<label>Teléfono</label>
+									<input type="text" name="telefono" class="form-control" value="{{ u.telefono }}" required>
+								</div>
+								<div class="mb-3">
+									<label>DNI</label>
+									<input type="text" name="dni" class="form-control" value="{{ u.dni }}" required>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="submit" class="btn btn-warning">Actualizar</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
+			<!-- Modal Eliminar Usuario -->
+			<div class="modal fade" id="modalEliminarUsuario{{ u.id_usuario }}" tabindex="-1">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<form action="{{ url_for('eliminar_usuario', id_usuario=u.id_usuario) }}" method="POST" class="form-eliminar-usuario">
+							<div class="modal-header">
+								<h5 class="modal-title">Eliminar Usuario</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+							</div>
+							<div class="modal-body">
+								¿Seguro que deseas eliminar a <strong>{{ u.nombres }} {{ u.apellidos }}</strong>?
+							</div>
+							<div class="modal-footer">
+								<button type="submit" class="btn btn-danger">Eliminar</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+<!-- Modal Agregar Usuario -->
+<div class="modal fade" id="modalAgregarUsuario" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<form action="{{ url_for('agregar_usuario') }}" method="POST" class="form-agregar-usuario">
+				<div class="modal-header">
+					<h5 class="modal-title">Agregar Usuario</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-3">
+						<label>Nombres</label>
+						<input type="text" name="nombres" class="form-control" required>
+					</div>
+					<div class="mb-3">
+						<label>Apellidos</label>
+						<input type="text" name="apellidos" class="form-control" required>
+					</div>
+					<div class="mb-3">
+						<label>Teléfono</label>
+						<input type="text" name="telefono" class="form-control" required>
+					</div>
+					<div class="mb-3">
+						<label>DNI</label>
+						<input type="text" name="dni" class="form-control" required>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary">Guardar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function(){
+	$('#tablaUsuarios').DataTable({
+		language: {
+			url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+		}
+	});
+
+	function confirmSubmit(selector, opts){
+		document.querySelectorAll(selector).forEach(function(form){
+			form.addEventListener('submit', function(ev){
+				if (form.dataset.confirmed === '1') return;
+				ev.preventDefault();
+				Swal.fire({
+					icon: opts.icon,
+					title: opts.title,
+					text: opts.text,
+					showCancelButton: true,
+					confirmButtonText: opts.confirmText || 'Sí',
+					cancelButtonText: 'Cancelar'
+				}).then((res)=>{
+					if(res.isConfirmed){
+						form.dataset.confirmed = '1';
+						form.submit();
+					}
+				});
+			});
+		});
+	}
+
+	confirmSubmit('form.form-agregar-usuario', { icon: 'question', title: '¿Guardar usuario?', text: 'Se registrará un nuevo usuario.', confirmText: 'Guardar' });
+	confirmSubmit('form.form-editar-usuario', { icon: 'question', title: '¿Actualizar usuario?', text: 'Se guardarán los cambios.', confirmText: 'Actualizar' });
+	confirmSubmit('form.form-eliminar-usuario', { icon: 'warning', title: '¿Eliminar usuario?', text: 'Esta acción no se puede deshacer.', confirmText: 'Eliminar' });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,19 @@
+{% for inq in inquilinos %}
+<div class="col-md-4">
+    <div class="card text-white {% if inq.dias_restantes > 3 %}bg-success{% elif inq.dias_restantes == 2 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+        <div class="card-body">
+            <h5 class="card-title">{{ inq.nombres }} {{ inq.apellidos }}</h5>
+            <p class="card-text">
+                Dpto: {{ inq.nombre_departamento }}<br>
+                Tel: {{ inq.telefono }}<br>
+                DNI: {{ inq.dni }}<br>
+                Fecha pago: {{ inq.fecha_pago.strftime('%d/%m/%Y') if inq.fecha_pago else '' }}<br>
+                Días restantes: {{ inq.dias_restantes }}
+            </p>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% if inquilinos|length == 0 %}
+<p class="text-muted">No se encontraron resultados.</p>
+{% endif %}

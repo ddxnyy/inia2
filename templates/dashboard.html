@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Dashboard</h2>
+
+    <!-- FILTROS -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Buscar</label>
+            <input type="text" id="filtroTexto" class="form-control" placeholder="Escribe para buscar...">
+        </div>
+        <div class="col-md-6">
+            <label>Filtrar por color</label>
+            <select id="filtroColor" class="form-control">
+                <option value="todos">Todos</option>
+                <option value="#dc3545">Rojo</option>
+                <option value="#fd7e14">Naranja</option>
+                <option value="#198754">Verde</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- TARJETAS -->
+    <div class="row" id="tarjetasContainer">
+        {% for inq in inquilinos %}
+        <div class="col-md-4 tarjeta-inquilino" 
+             data-color="{{ inq.color }}">
+            <div class="card text-white mb-3 {% if inq.dias_restantes > 3 %}bg-success{% elif inq.dias_restantes == 2 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ inq.nombres }} {{ inq.apellidos }}</h5>
+                    <p>Departamento: {{ inq.nombre_departamento }}</p>
+                    <p>Días para pagar: {{ inq.dias_restantes }}</p>
+                    <p>Fecha de pago: {{ inq.fecha_pago.strftime('%d/%m/%Y') if inq.fecha_pago else '' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const filtroTexto = document.getElementById("filtroTexto");
+    const filtroColor = document.getElementById("filtroColor");
+    const tarjetas = document.querySelectorAll(".tarjeta-inquilino");
+
+    function aplicarFiltros() {
+        const texto = filtroTexto.value.toLowerCase();
+        const color = filtroColor.value;
+
+        tarjetas.forEach(tarjeta => {
+            const textoTarjeta = tarjeta.innerText.toLowerCase();
+            const tarjetaColor = tarjeta.getAttribute("data-color");
+
+            let mostrar = true;
+
+            // FILTRO POR TEXTO
+            if (texto && !textoTarjeta.includes(texto)) {
+                mostrar = false;
+            }
+
+            // FILTRO POR COLOR
+            if (color !== "todos" && tarjetaColor !== color) {
+                mostrar = false;
+            }
+
+            tarjeta.style.display = mostrar ? "block" : "none";
+        });
+    }
+
+    filtroTexto.addEventListener("input", aplicarFiltros);
+    filtroColor.addEventListener("change", aplicarFiltros);
+});
+</script>
+
+{% endblock %}

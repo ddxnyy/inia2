@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Lista de Inquilinos</h2>
+        <!-- Botón Agregar -->
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+            <i class="bi bi-plus-lg"></i> Agregar Inquilino
+        </button>
+    </div>
+
+    <table id="tablaInquilinos" class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombres</th>
+                <th>Apellidos</th>
+                <th>Teléfono</th>
+                <th>DNI</th>
+                <th>Departamento</th>
+                <th>Fecha Pago</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inq in inquilinos %}
+            <tr>
+                <td>{{ inq.id_inquilino }}</td>
+                <td>{{ inq.nombres }}</td>
+                <td>{{ inq.apellidos }}</td>
+                <td>{{ inq.telefono }}</td>
+                <td>{{ inq.dni }}</td>
+                <td>{{ inq.nombre_departamento }}</td>
+                <td>{{ inq.fecha_pago.strftime('%d/%m/%Y') if inq.fecha_pago else '' }}</td>
+                <td>
+                    <!-- Botón Renovar -->
+                    <form action="{{ url_for('renovar_inquilino', id_inquilino=inq.id_inquilino) }}" method="POST" class="d-inline form-renovar-inquilino">
+                        <button type="submit" class="btn btn-success btn-sm" title="Renovar 1 mes">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </form>
+                    <!-- Botón Editar -->
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ inq.id_inquilino }}">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <!-- Botón No Renovar (Eliminar) -->
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar{{ inq.id_inquilino }}" title="Finalizar contrato">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% for inq in inquilinos %}
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar{{ inq.id_inquilino }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('editar_inquilino', id_inquilino=inq.id_inquilino) }}" method="POST" class="form-editar-inquilino">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Inquilino</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Usuario</label>
+                        <select name="id_usuario" class="form-select select2-usuario" style="width:100%" required>
+                            {% for u in usuarios %}
+                                <option value="{{ u.id_usuario }}" {% if u.id_usuario == inq.id_usuario %}selected{% endif %}>{{ u.apellidos }}, {{ u.nombres }} - {{ u.dni }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Puedes crear un usuario nuevo desde "Agregar Inquilino".</div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Departamento</label>
+                        <select name="id_departamento" class="form-select" required>
+                            {% for dep in departamentos if dep.estado == 'Disponible' or dep.id_departamento == inq.id_departamento %}
+                                <option value="{{ dep.id_departamento }}" {% if dep.id_departamento == inq.id_departamento %}selected{% endif %}>{{ dep.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Fecha de Pago</label>
+                        <input type="date" name="fecha_pago" class="form-control" value="{{ inq.fecha_pago }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar{{ inq.id_inquilino }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('eliminar_inquilino', id_inquilino=inq.id_inquilino) }}" method="POST" class="form-eliminar-inquilino">
+                <div class="modal-header">
+                    <h5 class="modal-title">Finalizar contrato</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Seguro que deseas finalizar el contrato de <strong>{{ inq.nombres }} {{ inq.apellidos }}</strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">No renovar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal Agregar -->
+<div class="modal fade" id="modalAgregar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('agregar_inquilino') }}" method="POST" class="form-agregar-inquilino">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Inquilino</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Usuario</label>
+                        <select name="id_usuario" class="form-select select2-usuario" style="width:100%">
+                            <option value="">— Seleccionar usuario existente —</option>
+                            {% for u in usuarios %}
+                                <option value="{{ u.id_usuario }}">{{ u.apellidos }}, {{ u.nombres }} - {{ u.dni }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="border rounded p-3 mb-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="toggleNuevoUsuario">
+                            <label class="form-check-label" for="toggleNuevoUsuario">Crear nuevo usuario</label>
+                        </div>
+                        <div id="nuevoUsuarioCampos" class="row g-2" style="display:none;">
+                            <input type="hidden" name="modo_usuario" value="existente">
+                            <div class="col-md-6">
+                                <label>Nombres</label>
+                                <input type="text" name="nombres" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Apellidos</label>
+                                <input type="text" name="apellidos" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Teléfono</label>
+                                <input type="text" name="telefono" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label>DNI</label>
+                                <input type="text" name="dni" class="form-control">
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted">Si completas estos campos, se registrará un nuevo usuario y se ignorará el selector de usuario existente.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Departamento</label>
+                        <select name="id_departamento" class="form-select" required>
+                            {% for dep in departamentos if dep.estado == 'Disponible' %}
+                                <option value="{{ dep.id_departamento }}">{{ dep.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Fecha de Pago</label>
+                        <input type="date" name="fecha_pago" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function(){
+    $('#tablaInquilinos').DataTable({
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        }
+    });
+
+    $('.select2-usuario').select2({
+        dropdownParent: $('#modalAgregar'),
+        width: 'resolve',
+        placeholder: '— Seleccionar usuario existente —'
+    });
+
+    // Para cada modal editar, inicializar select2 cuando se abre
+    $('div[id^="modalEditar"]').on('shown.bs.modal', function(){
+        $(this).find('.select2-usuario').select2({ dropdownParent: $(this), width: 'resolve' });
+    });
+
+    const hayDisponibles = JSON.parse('{{ "true" if hay_disponibles else "false" }}');
+    const agregarModal = document.getElementById('modalAgregar');
+    if (agregarModal) {
+        agregarModal.addEventListener('show.bs.modal', function (e) {
+            if (!hayDisponibles) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin departamentos disponibles',
+                    text: 'No hay departamentos disponibles para asignar. Registre un nuevo departamento o libere uno existente.',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        });
+    }
+
+    // Toggle crear nuevo usuario
+    const toggleNuevo = document.getElementById('toggleNuevoUsuario');
+    const nuevoCampos = document.getElementById('nuevoUsuarioCampos');
+    if (toggleNuevo) {
+        toggleNuevo.addEventListener('change', function(){
+            const hiddenModo = nuevoCampos.querySelector('input[name="modo_usuario"]');
+            if (this.checked) {
+                nuevoCampos.style.display = '';
+                hiddenModo.value = 'nuevo';
+            } else {
+                nuevoCampos.style.display = 'none';
+                hiddenModo.value = 'existente';
+            }
+        });
+    }
+
+    function confirmSubmit(selector, opts){
+        document.querySelectorAll(selector).forEach(function(form){
+            form.addEventListener('submit', function(ev){
+                if (form.dataset.confirmed === '1') return;
+                ev.preventDefault();
+                Swal.fire({
+                    icon: opts.icon,
+                    title: opts.title,
+                    text: opts.text,
+                    showCancelButton: true,
+                    confirmButtonText: opts.confirmText || 'Sí',
+                    cancelButtonText: 'Cancelar'
+                }).then((res)=>{
+                    if(res.isConfirmed){
+                        form.dataset.confirmed = '1';
+                        form.submit();
+                    }
+                });
+            });
+        });
+    }
+
+    confirmSubmit('form.form-agregar-inquilino', { icon: 'question', title: '¿Guardar inquilino?', text: 'Se registrará un nuevo inquilino.', confirmText: 'Guardar' });
+    confirmSubmit('form.form-editar-inquilino', { icon: 'question', title: '¿Actualizar inquilino?', text: 'Se guardarán los cambios.', confirmText: 'Actualizar' });
+    confirmSubmit('form.form-eliminar-inquilino', { icon: 'warning', title: '¿Finalizar contrato?', text: 'Esta acción no se puede deshacer.', confirmText: 'No renovar' });
+    confirmSubmit('form.form-renovar-inquilino', { icon: 'question', title: '¿Renovar 1 mes?', text: 'Se moverá la fecha de pago un mes adelante.', confirmText: 'Renovar' });
+});
+</script>
+{% endblock %}

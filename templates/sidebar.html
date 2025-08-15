@@ -1,0 +1,39 @@
+<!-- Sidebar -->
+<nav class="d-flex flex-column p-3 bg-dark text-white vh-100 border-end border-secondary" style="width: 250px;">
+	<h4 class="text-center mb-1">Menú</h4>
+	{% if session.get('admin_user') %}
+	<p class="text-center text-white-50 small mb-4">{{ session.get('admin_user') }}</p>
+	{% endif %}
+
+	<!-- Dashboard -->
+	<a href="/" class="nav-link text-white-50 py-2 px-2 d-flex justify-content-between align-items-center">
+		<span><i class="bi bi-speedometer2 me-2"></i> Dashboard</span>
+		<span>
+			<span class="badge bg-success">{{ count_verde }}</span>
+			<span class="badge bg-warning text-dark">{{ count_naranja }}</span>
+			<span class="badge bg-danger">{{ count_rojo }}</span>
+		</span>
+	</a>
+	<hr class="border-secondary opacity-50 my-3">
+
+	<!-- Inquilinos -->
+	<a href="/inquilinos" class="nav-link text-white-50 py-2 px-2">
+		<i class="bi bi-people me-2"></i> Inquilinos
+	</a>
+	<hr class="border-secondary opacity-50 my-3">
+
+	<!-- Usuarios -->
+	<a href="/usuarios" class="nav-link text-white-50 py-2 px-2">
+		<i class="bi bi-person-badge me-2"></i> Usuarios
+	</a>
+	<hr class="border-secondary opacity-50 my-3">
+
+	<!-- Departamentos -->
+	<a href="/departamentos" class="nav-link text-white-50 py-2 px-2">
+		<i class="bi bi-building me-2"></i> Departamentos
+	</a>
+
+	<div class="mt-auto pt-3">
+		<a href="{{ url_for('logout') }}" id="btnLogout" class="btn btn-outline-light w-100">Cerrar sesión</a>
+	</div>
+</nav>
