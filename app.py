@@ -1,18 +1,39 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import mysql.connector
 from datetime import datetime, date
-from urllib.parse import urlparse
 import calendar
 import os
-
-# Importaciones adicionales
 import logging
 import traceback
-from flask import jsonify
+from urllib.parse import urlparse
+
+# Crear la aplicación Flask
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
 # Configuración de logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Función de conexión a base de datos
+def get_db_connection():
+    try:
+        # Obtener URL de variable de entorno
+        mysql_url = os.environ.get('MYSQL_URL')
+        
+        # Parsear la URL
+        url = urlparse(mysql_url)
+        
+        return mysql.connector.connect(
+            host=url.hostname,
+            user=url.username,
+            password=url.password,
+            database=url.path.lstrip('/'),
+            port=url.port
+        )
+    except Exception as e:
+        logger.error(f"Error de conexión a base de datos: {e}")
+        raise
 
 # Manejador de errores global
 @app.errorhandler(Exception)
@@ -21,31 +42,13 @@ def handle_exception(e):
     logger.error(f"Unhandled Exception: {str(e)}")
     logger.error(traceback.format_exc())
     
-    # Respuesta de error detallada (solo en desarrollo)
+    # Respuesta de error detallada
     return jsonify({
         "error": "Internal Server Error",
         "message": str(e),
         "trace": traceback.format_exc()
     }), 500
 
-app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
-
-
-def get_db_connection():
-    # Obtener URL de variable de entorno
-    mysql_url = os.environ.get('MYSQL_URL')
-    
-    # Parsear la URL
-    url = urlparse(mysql_url)
-    
-    return mysql.connector.connect(
-        host=url.hostname,
-        user=url.username,
-        password=url.password,
-        database=url.path.lstrip('/'),
-        port=url.port
-    )
 # =========================
 # AUTENTICACIÓN BÁSICA
 # =========================
@@ -94,14 +97,12 @@ def _as_date(value):
         return value.date()
     return None
 
-
 def _add_months(orig_date: date, months: int = 1) -> date:
     year = orig_date.year + ((orig_date.month - 1 + months) // 12)
     month = ((orig_date.month - 1 + months) % 12) + 1
     last_day = calendar.monthrange(year, month)[1]
     day = min(orig_date.day, last_day)
     return date(year, month, day)
-
 
 def obtener_contadores():
     conn = get_db_connection()
@@ -504,17 +505,8 @@ def eliminar_departamento(id_departamento):
 # MAIN
 # =========================
 if __name__ == '__main__':
-    try:
-        # Intento de conexión a base de datos al inicio
-        test_conn = get_db_connection()
-        test_conn.close()
-        
-        # Arranque del servidor
-        app.run(
-            host='0.0.0.0', 
-            port=int(os.environ.get('PORT', 5000)), 
-            debug=os.environ.get('DEBUG', 'false').lower() == 'true'
-        )
-    except Exception as e:
-        logger.error(f"Error al iniciar la aplicación: {e}")
-        logger.error(traceback.format_exc())
+    app.run(
+        host='0.0.0.0', 
+        port=int(os.environ.get('PORT', 5000)), 
+        debug=os.environ.get('DEBUG', 'false').lower() == 'true'
+    )
