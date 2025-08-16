@@ -64,9 +64,11 @@ def login():
         usuario = request.form.get('usuario', '').strip()
         contrasena = request.form.get('contrasena', '')
         conn = get_db_connection()
+        if conn is None:  # Verifica si la conexión es None
+            return render_template('login.html', title='Login', login_error=True, error_message="No se pudo conectar a la base de datos.")
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT id, usuario FROM admin WHERE usuario=%s AND contrasena=SHA2(%s, 256)",
+            "SELECT id, usuario FROM admin WHERE usuario=%s AND contrasena=%s",
             (usuario, contrasena)
         )
         row = cursor.fetchone()
