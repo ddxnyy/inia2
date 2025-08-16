@@ -17,23 +17,13 @@ logger = logging.getLogger(__name__)
 
 # Función de conexión a base de datos
 def get_db_connection():
-    try:
-        # Obtener URL de variable de entorno
-        mysql_url = os.environ.get('MYSQL_URL')
-        
-        # Parsear la URL
-        url = urlparse(mysql_url)
-        
-        return mysql.connector.connect(
-            host=url.hostname,
-            user=url.username,
-            password=url.password,
-            database=url.path.lstrip('/'),
-            port=url.port
-        )
-    except Exception as e:
-        logger.error(f"Error de conexión a base de datos: {e}")
-        raise
+    return mysql.connector.connect(
+        host=os.environ.get('DB_HOST', 'sql211.infinityfree.com'),
+        user=os.environ.get('DB_USER', 'if0_39708091'),
+        password=os.environ.get('DB_PASSWORD', 'danydaniel1928'),
+        database=os.environ.get('DB_NAME', 'if0_39708091_control_pagos'),
+        port=int(os.environ.get('DB_PORT', 3306))
+    )
 
 # Manejador de errores global
 @app.errorhandler(Exception)
