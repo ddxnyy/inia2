@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 # Crear la aplicación Flask
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
+app.secret_key = os.environ.get("SECRET_KEY", "3ee532f0a23be47d206fdcc690baf9b3")
 
 # Configuración de logging
 logging.basicConfig(level=logging.DEBUG)
