@@ -30,6 +30,7 @@ def get_db_connection():
            print("Error de conexión a la base de datos.")
         else:
             print(f"Error de conexión: {err}")
+        return None
 
 # Manejador de errores global
 @app.errorhandler(Exception)
