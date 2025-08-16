@@ -17,13 +17,19 @@ logger = logging.getLogger(__name__)
 
 # Función de conexión a base de datos
 def get_db_connection():
-    return mysql.connector.connect(
-        host=os.environ.get('DB_HOST', 'sql211.infinityfree.com'),
-        user=os.environ.get('DB_USER', 'if0_39708091'),
-        password=os.environ.get('DB_PASSWORD', 'danydaniel1928'),
-        database=os.environ.get('DB_NAME', 'if0_39708091_control_pagos'),
-        port=int(os.environ.get('DB_PORT', 3306))
-    )
+   try:
+       return mysql.connector.connect(
+           host=os.environ.get('DB_HOST', 'sql211.infinityfree.com'),
+            user=os.environ.get('DB_USER', 'if0_39708091'),
+           password=os.environ.get('DB_PASSWORD', 'danydaniel1928'),
+           database=os.environ.get('DB_NAME', 'if0_39708091_control_pagos'),
+           port=int(os.environ.get('DB_PORT', 3306))
+        )
+   except mysql.connector.Error as err:
+        if not os.environ.get('DEBUG', 'False').lower() in ['true', '1']:
+           print("Error de conexión a la base de datos.")
+        else:
+            print(f"Error de conexión: {err}")
 
 # Manejador de errores global
 @app.errorhandler(Exception)
